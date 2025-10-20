@@ -6,17 +6,17 @@ spring:
 
   datasource:
     dakar:
-      url: jdbc:postgresql://localhost:5432/ventes_dakar
+      jdbc-url: jdbc:postgresql://localhost:5432/ventes_dakar
       username: dsms_user
       password: dsms_pass
       driver-class-name: org.postgresql.Driver
     thies:
-      url: jdbc:postgresql://localhost:5432/ventes_thies
+      jdbc-url: jdbc:postgresql://localhost:5432/ventes_thies
       username: dsms_user
       password: dsms_pass
       driver-class-name: org.postgresql.Driver
     stl:
-      url: jdbc:postgresql://localhost:5432/ventes_stlouis
+      jdbc-url: jdbc:postgresql://localhost:5432/ventes_stlouis
       username: dsms_user
       password: dsms_pass
       driver-class-name: org.postgresql.Driver

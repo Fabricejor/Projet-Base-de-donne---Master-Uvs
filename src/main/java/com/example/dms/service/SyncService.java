@@ -1,133 +1,82 @@
 package com.example.dms.service;
 
-import com.example.dms.dakar.repository.VenteRepositoryDakar;
-import com.example.dms.thies.repository.VenteRepositoryThies;
-import com.example.dms.stl.repository.VenteRepositoryStl;
 import com.example.dms.model.Vente;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.logging.Logger;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class SyncService {
-    
-    private static final Logger logger = Logger.getLogger(SyncService.class.getName());
-    
-    @Autowired
-    private VenteRepositoryDakar venteRepositoryDakar;
-    
-    @Autowired
-    private VenteRepositoryThies venteRepositoryThies;
-    
-    @Autowired
-    private VenteRepositoryStl venteRepositoryStl;
-    
-    /**
-     * Synchronise les données de Dakar vers les autres sites
-     */
-    @Transactional
-    public void syncFromDakar() {
-        logger.info("Début de la synchronisation depuis Dakar...");
-        List<Vente> ventesDakar = venteRepositoryDakar.findAll();
-        
-        // Synchroniser vers Thiès
-        syncVentesToSite(ventesDakar, "thies");
-        
-        // Synchroniser vers STL
-        syncVentesToSite(ventesDakar, "stl");
-        
-        logger.info("Synchronisation depuis Dakar terminée.");
+
+    private final MultiVenteService multi;
+
+    public SyncService(MultiVenteService multi) {
+        this.multi = multi;
     }
-    
-    /**
-     * Synchronise les données de Thiès vers les autres sites
-     */
-    @Transactional
-    public void syncFromThies() {
-        logger.info("Début de la synchronisation depuis Thiès...");
-        List<Vente> ventesThies = venteRepositoryThies.findAll();
-        
-        // Synchroniser vers Dakar
-        syncVentesToSite(ventesThies, "dakar");
-        
-        // Synchroniser vers STL
-        syncVentesToSite(ventesThies, "stl");
-        
-        logger.info("Synchronisation depuis Thiès terminée.");
-    }
-    
-    /**
-     * Synchronise les données de STL vers les autres sites
-     */
-    @Transactional
-    public void syncFromStl() {
-        logger.info("Début de la synchronisation depuis STL...");
-        List<Vente> ventesStl = venteRepositoryStl.findAll();
-        
-        // Synchroniser vers Dakar
-        syncVentesToSite(ventesStl, "dakar");
-        
-        // Synchroniser vers Thiès
-        syncVentesToSite(ventesStl, "thies");
-        
-        logger.info("Synchronisation depuis STL terminée.");
-    }
-    
-    /**
-     * Synchronise toutes les données entre tous les sites
-     */
-    @Transactional
-    public void syncAll() {
-        logger.info("Début de la synchronisation complète...");
-        syncFromDakar();
-        syncFromThies();
-        syncFromStl();
-        logger.info("Synchronisation complète terminée.");
-    }
-    
-    /**
-     * Synchronisation automatique programmée (toutes les heures)
-     */
-    @Scheduled(fixedRate = 3600000) // Toutes les heures
-    public void scheduledSync() {
-        logger.info("Exécution de la synchronisation programmée...");
-        syncAll();
-    }
-    
-    /**
-     * Méthode privée pour synchroniser les ventes vers un site spécifique
-     */
-    private void syncVentesToSite(List<Vente> ventes, String targetSite) {
-        for (Vente vente : ventes) {
-            try {
-                switch (targetSite.toLowerCase()) {
-                    case "dakar":
-                        if (!venteRepositoryDakar.existsById(vente.getId())) {
-                            venteRepositoryDakar.save(vente);
-                        }
-                        break;
-                    case "thies":
-                        if (!venteRepositoryThies.existsById(vente.getId())) {
-                            venteRepositoryThies.save(vente);
-                        }
-                        break;
-                    case "stl":
-                        if (!venteRepositoryStl.existsById(vente.getId())) {
-                            venteRepositoryStl.save(vente);
-                        }
-                        break;
-                    default:
-                        logger.warning("Site inconnu: " + targetSite);
-                }
-            } catch (Exception e) {
-                logger.severe("Erreur lors de la synchronisation de la vente " + vente.getId() + 
-                             " vers " + targetSite + ": " + e.getMessage());
+
+    // 🔹 Synchronisation automatique toutes les 60 s
+    @Scheduled(fixedDelayString = "${sync.interval}")
+    public void synchronize() {
+        System.out.println("⏳ Synchronisation en cours...");
+
+        // 1️⃣ Récupérer toutes les ventes de chaque base
+        Map<UUID, Vente> dakar = multi.findAllFromDakar().stream()
+                .collect(Collectors.toMap(Vente::getId, v -> v));
+        Map<UUID, Vente> thies = multi.findAllFromThies().stream()
+                .collect(Collectors.toMap(Vente::getId, v -> v));
+        Map<UUID, Vente> stl = multi.findAllFromStl().stream()
+                .collect(Collectors.toMap(Vente::getId, v -> v));
+
+        // 2️⃣ Union de tous les IDs
+        Set<UUID> allIds = new HashSet<>();
+        allIds.addAll(dakar.keySet());
+        allIds.addAll(thies.keySet());
+        allIds.addAll(stl.keySet());
+
+        // 3️⃣ Pour chaque vente, choisir la plus récente (last-write-wins)
+        for (UUID id : allIds) {
+            Vente vD = dakar.get(id);
+            Vente vT = thies.get(id);
+            Vente vS = stl.get(id);
+
+            Vente latest = Stream.of(vD, vT, vS)
+                    .filter(Objects::nonNull)
+                    .max(Comparator.comparing(Vente::getUpdatedAt))
+                    .orElse(null);
+
+            if (latest == null) continue;
+
+            // 🔁 Propager la version la plus récente dans les autres bases
+            if (vD == null || vD.getUpdatedAt().isBefore(latest.getUpdatedAt())) {
+                multi.saveToDakar(cloneForRegion(latest, "Dakar"));
+            }
+            if (vT == null || vT.getUpdatedAt().isBefore(latest.getUpdatedAt())) {
+                multi.saveToThies(cloneForRegion(latest, "Thies"));
+            }
+            if (vS == null || vS.getUpdatedAt().isBefore(latest.getUpdatedAt())) {
+                multi.saveToStl(cloneForRegion(latest, "Saint-Louis"));
             }
         }
+
+        System.out.println("✅ Synchronisation terminée !");
+    }
+
+    private Vente cloneForRegion(Vente source, String region) {
+        Vente clone = new Vente();
+        clone.setId(source.getId());
+        clone.setDateVente(source.getDateVente());
+        clone.setMontant(source.getMontant());
+        clone.setProduit(source.getProduit());
+        clone.setRegion(region);
+        clone.setUpdatedAt(source.getUpdatedAt());
+        return clone;
+    }
+
+    // 🔹 Pour lancer la synchro manuellement depuis le contrôleur
+    public void manualSync() {
+        synchronize();
     }
 }
-

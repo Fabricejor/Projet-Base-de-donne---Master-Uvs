@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ventes DSMS</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 8px; }
+        th { background-color: #f2f2f2; }
+        form { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<h1>💼 Liste des ventes consolidées</h1>
+
+<form th:action="@{/add}" method="post">
+    <input type="text" name="produit" placeholder="Produit" required>
+    <input type="number" name="montant" placeholder="Montant" step="0.01" required>
+    <input type="date" name="dateVente" required>
+    <select name="region" required>
+        <option>Dakar</option>
+        <option>Thies</option>
+        <option>Saint-Louis</option>
+    </select>
+    <button type="submit">Ajouter Vente</button>
+</form>
+
+<form th:action="@{/sync}" method="post">
+    <button type="submit">🔄 Synchroniser maintenant</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Produit</th>
+            <th>Montant</th>
+            <th>Région</th>
+            <th>Date</th>
+            <th>Dernière maj</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="v : ${ventes}">
+            <td th:text="${v.id}"></td>
+            <td th:text="${v.produit}"></td>
+            <td th:text="${v.montant}"></td>
+            <td th:text="${v.region}"></td>
+            <td th:text="${v.dateVente}"></td>
+            <td th:text="${v.updatedAt}"></td>
+        </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
