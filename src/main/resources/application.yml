@@ -1,0 +1,27 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  datasource:
+    dakar:
+      url: jdbc:postgresql://localhost:5432/ventes_dakar
+      username: dsms_user
+      password: dsms_pass
+      driver-class-name: org.postgresql.Driver
+    thies:
+      url: jdbc:postgresql://localhost:5432/ventes_thies
+      username: dsms_user
+      password: dsms_pass
+      driver-class-name: org.postgresql.Driver
+    stl:
+      url: jdbc:postgresql://localhost:5432/ventes_stlouis
+      username: dsms_user
+      password: dsms_pass
+      driver-class-name: org.postgresql.Driver
+
+sync:
+  interval: 60000 # en millisecondes (60 secondes)
+server:
+  port: 8080
