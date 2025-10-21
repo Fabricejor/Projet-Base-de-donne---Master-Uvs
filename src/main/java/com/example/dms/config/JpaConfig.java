@@ -11,6 +11,7 @@ import java.util.Map;
 @Configuration
 public class JpaConfig {
 
+    @SuppressWarnings("removal")
     @Bean
     public EntityManagerFactoryBuilder entityManagerFactoryBuilder() {
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
