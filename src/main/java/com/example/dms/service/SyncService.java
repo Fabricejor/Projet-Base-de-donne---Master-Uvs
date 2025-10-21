@@ -22,7 +22,7 @@ public class SyncService {
     public void synchronize() {
         System.out.println("⏳ Synchronisation en cours...");
 
-        // 1️⃣ Récupérer toutes les ventes de chaque base
+        // 1️⃣ Récupérer toutes les ventes de chaque base (y compris les supprimées pour les tombstones)
         Map<UUID, Vente> dakar = multi.findAllFromDakar().stream()
                 .collect(Collectors.toMap(Vente::getId, v -> v));
         Map<UUID, Vente> thies = multi.findAllFromThies().stream()
@@ -36,12 +36,13 @@ public class SyncService {
         allIds.addAll(thies.keySet());
         allIds.addAll(stl.keySet());
 
-        // 3️⃣ Pour chaque vente, choisir la plus récente (last-write-wins)
+        // 3️⃣ Pour chaque vente, choisir la plus récente (last-write-wins) avec gestion des tombstones
         for (UUID id : allIds) {
             Vente vD = dakar.get(id);
             Vente vT = thies.get(id);
             Vente vS = stl.get(id);
 
+            // Trouver la version la plus récente (même si supprimée)
             Vente latest = Stream.of(vD, vT, vS)
                     .filter(Objects::nonNull)
                     .max(Comparator.comparing(Vente::getUpdatedAt))
@@ -50,6 +51,7 @@ public class SyncService {
             if (latest == null) continue;
 
             // 🔁 Propager la version la plus récente dans les autres bases
+            // Si la version la plus récente est supprimée, propager la suppression
             if (vD == null || vD.getUpdatedAt().isBefore(latest.getUpdatedAt())) {
                 multi.saveToDakar(cloneForRegion(latest, "Dakar"));
             }
@@ -72,6 +74,9 @@ public class SyncService {
         clone.setProduit(source.getProduit());
         clone.setRegion(region);
         clone.setUpdatedAt(source.getUpdatedAt());
+        // Copier aussi les informations de suppression (tombstone)
+        clone.setDeleted(source.getDeleted());
+        clone.setDeletedAt(source.getDeletedAt());
         return clone;
     }
 

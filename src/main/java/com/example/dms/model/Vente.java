@@ -12,12 +12,20 @@ public class Vente {
     @Id
     private UUID id;
 
+    @Column(name = "date_vente")
     private LocalDate dateVente;
     private Double montant;
     private String produit;
     private String region;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted")
+    private Boolean deleted = false;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     // 🔹 Constructeur par défaut
     public Vente() {
@@ -78,5 +86,28 @@ public class Vente {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    // 🔹 Méthode helper pour marquer comme supprimé (soft delete)
+    public void markAsDeleted() {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

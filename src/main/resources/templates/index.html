@@ -4,54 +4,255 @@
     <meta charset="UTF-8">
     <title>Ventes DSMS</title>
     <style>
-        body { font-family: Arial; margin: 20px; }
-        table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 8px; }
-        th { background-color: #f2f2f2; }
-        form { margin-bottom: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .form-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .form-section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .sync-btn {
+            background-color: #2196F3;
+        }
+        .sync-btn:hover {
+            background-color: #0b7dda;
+        }
+        .edit-btn {
+            background-color: #ff9800;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .edit-btn:hover {
+            background-color: #e68900;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background-color: #da190b;
+        }
+        table { 
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td { 
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th { 
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 500px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .id-cell {
+            font-family: monospace;
+            font-size: 11px;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
 
-<h1>💼 Liste des ventes consolidées</h1>
+<div class="container">
+    <h1>💼 Système de Gestion des Ventes Multi-Régions</h1>
 
-<form th:action="@{/add}" method="post">
-    <input type="text" name="produit" placeholder="Produit" required>
-    <input type="number" name="montant" placeholder="Montant" step="0.01" required>
-    <input type="date" name="dateVente" required>
-    <select name="region" required>
-        <option>Dakar</option>
-        <option>Thies</option>
-        <option>Saint-Louis</option>
-    </select>
-    <button type="submit">Ajouter Vente</button>
-</form>
+    <div class="form-section">
+        <h3>➕ Ajouter une nouvelle vente</h3>
+        <form th:action="@{/add}" method="post" style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <input type="text" name="produit" placeholder="Produit" required>
+            <input type="number" name="montant" placeholder="Montant" step="0.01" required>
+            <input type="date" name="dateVente" required>
+            <select name="region" required>
+                <option value="Dakar">Dakar</option>
+                <option value="Thies">Thies</option>
+                <option value="Saint-Louis">Saint-Louis</option>
+            </select>
+            <button type="submit">Ajouter Vente</button>
+        </form>
+    </div>
 
-<form th:action="@{/sync}" method="post">
-    <button type="submit">🔄 Synchroniser maintenant</button>
-</form>
+    <form th:action="@{/sync}" method="post">
+        <button type="submit" class="sync-btn">🔄 Synchroniser maintenant</button>
+    </form>
 
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Produit</th>
-            <th>Montant</th>
-            <th>Région</th>
-            <th>Date</th>
-            <th>Dernière maj</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr th:each="v : ${ventes}">
-            <td th:text="${v.id}"></td>
-            <td th:text="${v.produit}"></td>
-            <td th:text="${v.montant}"></td>
-            <td th:text="${v.region}"></td>
-            <td th:text="${v.dateVente}"></td>
-            <td th:text="${v.updatedAt}"></td>
-        </tr>
-    </tbody>
-</table>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Produit</th>
+                <th>Montant</th>
+                <th>Région</th>
+                <th>Date Vente</th>
+                <th>Dernière MAJ</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="v : ${ventes}">
+                <td class="id-cell" th:text="${v.id}" th:title="${v.id}"></td>
+                <td th:text="${v.produit}"></td>
+                <td th:text="${v.montant} + ' FCFA'"></td>
+                <td th:text="${v.region}"></td>
+                <td th:text="${v.dateVente}"></td>
+                <td th:text="${v.updatedAt}"></td>
+                <td>
+                    <button class="edit-btn" 
+                            th:data-id="${v.id}" 
+                            th:data-produit="${v.produit}" 
+                            th:data-montant="${v.montant}" 
+                            th:data-date="${v.dateVente}" 
+                            th:data-region="${v.region}"
+                            onclick="openEditModalFromData(this)">
+                        ✏️ Modifier
+                    </button>
+                    <form th:action="@{/delete}" method="post" style="display: inline;" 
+                          onsubmit="return confirm('Voulez-vous vraiment supprimer cette vente ?');">
+                        <input type="hidden" name="id" th:value="${v.id}">
+                        <input type="hidden" name="region" th:value="${v.region}">
+                        <button type="submit" class="delete-btn">🗑️ Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal pour modifier -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>✏️ Modifier la vente</h2>
+        <form th:action="@{/update}" method="post">
+            <input type="hidden" id="edit-id" name="id">
+            <input type="hidden" id="edit-region" name="region">
+            
+            <label>Produit:</label><br>
+            <input type="text" id="edit-produit" name="produit" style="width: 90%;" required><br><br>
+            
+            <label>Montant (FCFA):</label><br>
+            <input type="number" id="edit-montant" name="montant" step="0.01" style="width: 90%;" required><br><br>
+            
+            <label>Date de vente:</label><br>
+            <input type="date" id="edit-dateVente" name="dateVente" style="width: 90%;" required><br><br>
+            
+            <label>Région:</label><br>
+            <input type="text" id="edit-region-display" style="width: 90%;" disabled><br><br>
+            
+            <button type="submit" style="width: 100%;">💾 Enregistrer les modifications</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Fonction pour ouvrir le modal en lisant les attributs data-*
+    function openEditModalFromData(button) {
+        const id = button.getAttribute('data-id');
+        const produit = button.getAttribute('data-produit');
+        const montant = button.getAttribute('data-montant');
+        const dateVente = button.getAttribute('data-date');
+        const region = button.getAttribute('data-region');
+        
+        openEditModal(id, produit, montant, dateVente, region);
+    }
+    
+    function openEditModal(id, produit, montant, dateVente, region) {
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-produit').value = produit;
+        document.getElementById('edit-montant').value = montant;
+        document.getElementById('edit-dateVente').value = dateVente;
+        document.getElementById('edit-region').value = region;
+        document.getElementById('edit-region-display').value = region;
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Fermer le modal si on clique en dehors
+    window.onclick = function(event) {
+        var modal = document.getElementById('editModal');
+        if (event.target == modal) {
+            closeEditModal();
+        }
+    }
+</script>
 
 </body>
 </html>

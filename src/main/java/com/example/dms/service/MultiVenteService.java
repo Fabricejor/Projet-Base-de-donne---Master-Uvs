@@ -57,12 +57,12 @@ public class MultiVenteService {
         return stlRepo.findAll();
     }
 
-    // 🔹 Récupérer toutes les ventes de toutes les régions
+    // 🔹 Récupérer toutes les ventes de toutes les régions (seulement les non-supprimées)
     public List<Vente> findAllFromAllRegions() {
         List<Vente> all = new ArrayList<>();
-        all.addAll(dakarRepo.findAll());
-        all.addAll(thiesRepo.findAll());
-        all.addAll(stlRepo.findAll());
+        all.addAll(dakarRepo.findAll().stream().filter(v -> !Boolean.TRUE.equals(v.getDeleted())).toList());
+        all.addAll(thiesRepo.findAll().stream().filter(v -> !Boolean.TRUE.equals(v.getDeleted())).toList());
+        all.addAll(stlRepo.findAll().stream().filter(v -> !Boolean.TRUE.equals(v.getDeleted())).toList());
         return all;
     }
 
@@ -75,11 +75,77 @@ public class MultiVenteService {
         return stlRepo.findById(id);
     }
 
-    // 🔹 Supprimer dans toutes les bases
+    // 🔹 Mise à jour d'une vente dans une région spécifique
+    @Transactional("dakarTransactionManager")
+    public Vente updateInDakar(UUID id, Vente updatedVente) {
+        return dakarRepo.findById(id).map(existing -> {
+            existing.setProduit(updatedVente.getProduit());
+            existing.setMontant(updatedVente.getMontant());
+            existing.setDateVente(updatedVente.getDateVente());
+            // updatedAt sera mis à jour automatiquement par @PreUpdate
+            return dakarRepo.save(existing);
+        }).orElseThrow(() -> new RuntimeException("Vente non trouvée dans Dakar"));
+    }
+
+    @Transactional("thiesTransactionManager")
+    public Vente updateInThies(UUID id, Vente updatedVente) {
+        return thiesRepo.findById(id).map(existing -> {
+            existing.setProduit(updatedVente.getProduit());
+            existing.setMontant(updatedVente.getMontant());
+            existing.setDateVente(updatedVente.getDateVente());
+            return thiesRepo.save(existing);
+        }).orElseThrow(() -> new RuntimeException("Vente non trouvée dans Thies"));
+    }
+
+    @Transactional("stlTransactionManager")
+    public Vente updateInStl(UUID id, Vente updatedVente) {
+        return stlRepo.findById(id).map(existing -> {
+            existing.setProduit(updatedVente.getProduit());
+            existing.setMontant(updatedVente.getMontant());
+            existing.setDateVente(updatedVente.getDateVente());
+            return stlRepo.save(existing);
+        }).orElseThrow(() -> new RuntimeException("Vente non trouvée dans Saint-Louis"));
+    }
+
+    // 🔹 Supprimer d'une région spécifique (soft delete avec tombstone)
+    @Transactional("dakarTransactionManager")
+    public void deleteFromDakar(UUID id) {
+        dakarRepo.findById(id).ifPresent(vente -> {
+            vente.markAsDeleted();
+            dakarRepo.save(vente);
+        });
+    }
+
+    @Transactional("thiesTransactionManager")
+    public void deleteFromThies(UUID id) {
+        thiesRepo.findById(id).ifPresent(vente -> {
+            vente.markAsDeleted();
+            thiesRepo.save(vente);
+        });
+    }
+
+    @Transactional("stlTransactionManager")
+    public void deleteFromStl(UUID id) {
+        stlRepo.findById(id).ifPresent(vente -> {
+            vente.markAsDeleted();
+            stlRepo.save(vente);
+        });
+    }
+
+    // 🔹 Supprimer dans toutes les bases (soft delete)
     @Transactional
     public void deleteById(UUID id) {
-        dakarRepo.deleteById(id);
-        thiesRepo.deleteById(id);
-        stlRepo.deleteById(id);
+        dakarRepo.findById(id).ifPresent(v -> {
+            v.markAsDeleted();
+            dakarRepo.save(v);
+        });
+        thiesRepo.findById(id).ifPresent(v -> {
+            v.markAsDeleted();
+            thiesRepo.save(v);
+        });
+        stlRepo.findById(id).ifPresent(v -> {
+            v.markAsDeleted();
+            stlRepo.save(v);
+        });
     }
 }
