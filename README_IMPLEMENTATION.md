@@ -37,7 +37,6 @@ Vous avez maintenant un système complet de gestion de ventes distribuées avec 
 | Fichier | Description |
 |---------|-------------|
 | `GUIDE_TEST_SCENARIO.md` | Guide complet des scénarios de test |
-| `CHANGELOG_MODIFICATIONS.md` | Détails techniques des changements |
 | `SQL_VERIFICATION_GUIDE.md` | Requêtes SQL pour vérifier les tests |
 | `README_IMPLEMENTATION.md` | Ce fichier récapitulatif |
 

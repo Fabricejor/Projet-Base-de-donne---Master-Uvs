@@ -2,8 +2,8 @@
 
 ---
 
-**Université Virtuelle du Sénégal (UVS)**  
-**Master - Projet Base de Données Distribuées**  
+**Université Numérique Cheikh Hamidou KANE**  
+**Master P8 - Projet Base de Données Distribuées**  
 **Auteur :** Jordan  
 **Date :** Octobre 2025  
 **Version :** 1.0
@@ -56,7 +56,7 @@ Le système permet de :
 
 ### 2.1 Contexte Métier
 
-Une entreprise dispose de **trois agences commerciales** réparties dans différentes régions du Sénégal. Chaque agence :
+IMAGINONS une entreprise dispose de **trois agences commerciales** réparties dans différentes régions du Sénégal. Chaque agence :
 - Enregistre ses ventes localement dans sa propre base de données
 - Doit pouvoir fonctionner en autonomie même si les autres sont inaccessibles
 - Nécessite une vision consolidée de toutes les ventes pour la direction
@@ -97,13 +97,13 @@ Les défis techniques à résoudre sont :
 │                    (localhost:8080)                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │VenteController│  │ SyncService  │  │ Monitoring   │     │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘     │
-│         │                  │                  │             │
-│  ┌──────▼──────────────────▼──────────────────▼───────┐    │
-│  │          MultiVenteService                         │    │
-│  └───┬───────────────┬────────────────┬───────────────┘    │
+│  ┌────────────────┐   ┌──────────────┐  ┌──────────────┐    │
+│  │VenteController │   │ SyncService  │  │ Monitoring   │    │
+│  └──────┬─────────┘   └──────┬───────┘  └──────┬───────┘    │
+│         │                    │                 │            │
+│  ┌──────▼────────────────────▼─────────────────▼───────┐    │
+│  │          MultiVenteService                          │    │
+│  └───┬───────────────┬────────────────┬────────────────┘    │
 │      │               │                │                     │
 └──────┼───────────────┼────────────────┼─────────────────────┘
        │               │                │
@@ -163,11 +163,11 @@ Le système utilise une architecture **multi-datasource** avec Spring Boot :
 
 | Technologie | Version | Utilisation |
 |-------------|---------|-------------|
-| **Java** | 17+ | Langage principal |
+| **Java** | 21+ | Langage principal |
 | **Spring Boot** | 3.x | Framework applicatif |
 | **Spring Data JPA** | 3.x | Couche de persistance |
 | **Hibernate** | 6.x | ORM (Object-Relational Mapping) |
-| **PostgreSQL** | 14+ | Système de gestion de base de données |
+| **PostgreSQL** | 16+ | Système de gestion de base de données |
 | **Maven** | 3.8+ | Gestion des dépendances |
 
 ### 4.2 Frontend
@@ -178,13 +178,7 @@ Le système utilise une architecture **multi-datasource** avec Spring Boot :
 | **HTML5/CSS3** | Interface utilisateur |
 | **JavaScript** | Interactions dynamiques |
 
-### 4.3 Outils de Monitoring
 
-| Outil | Utilisation |
-|-------|-------------|
-| **MonitoringService** | Collecte de métriques personnalisées |
-| **Spring Cache** | Cache en mémoire pour optimisation |
-| **pg_stat_user_indexes** | Statistiques PostgreSQL |
 
 ---
 
@@ -406,7 +400,7 @@ public void deleteFromDakar(UUID id) {
 - ✅ Traçabilité complète
 - ✅ Possibilité de récupération
 - ✅ Synchronisation cohérente des suppressions
-
+- ❌ ON EVITE DE SUPPRIMER DEIFINITIVEMENT
 ---
 
 ## 6. Scénarios de Test et Démonstration
@@ -868,7 +862,7 @@ Accessible via `http://localhost:8080/stats`
 **Exemple de rendu :**
 ```
 ╔══════════════════════════════════════════════╗
-║  📊 Tableau de Bord - Statistiques Système  ║
+║  📊 Tableau de Bord - Statistiques Système   ║
 ╚══════════════════════════════════════════════╝
 
 📈 Statistiques de Synchronisation
@@ -879,7 +873,7 @@ Accessible via `http://localhost:8080/stats`
 
 🌍 État des Régions
 ┌──────────────┬──────────────┬──────────────┐
-│ 🏢 Dakar     │ 🏢 Thies     │🏢 St-Louis   │
+│ 🏢Dakar     │🏢 Thies      │🏢 St-Louis   │ 
 │   ONLINE     │   ONLINE     │   WARNING    │
 │ Erreurs: 0   │ Erreurs: 0   │ Erreurs: 3   │
 └──────────────┴──────────────┴──────────────┘
@@ -1009,7 +1003,7 @@ Ce projet a permis de réaliser un système distribué complet avec :
 - **Latence** : Synchronisation toutes les 60s (pas temps réel)
 - **Cache** : Configuré mais non activé sur les méthodes
 
-#### Améliorations Futures
+#### ~~~~AMELIORATION FUTURES~~~~~
 
 1. **Architecture Dynamique**
    - Ajout/suppression de régions à chaud
@@ -1184,23 +1178,14 @@ Start-Service postgresql-x64-14
 - [Spring Data JPA](https://spring.io/projects/spring-data-jpa)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 
-**Concepts Théoriques :**
-- CAP Theorem - Eric Brewer (2000)
-- Eventual Consistency - Werner Vogels (Amazon CTO)
-- Last-Write-Wins Conflict Resolution
-
-**Patterns :**
-- Multi-Tenancy Pattern
-- Repository Pattern
-- Service Layer Pattern
 
 ---
 
 ## 📄 Fin du Rapport
 
-**Date de Rédaction :** 21 Octobre 2025  
-**Auteur :** Jordan  
-**Université :** UVS - Master  
+**Date de Rédaction :** 20 Octobre 2025  
+**Auteur :** Fabrice Jordan RAMOS 
+**Université :** UNCHK - Master P8  
 **Projet :** Base de Données Distribuées  
 
 **Statut :** ✅ Projet Complet et Opérationnel
